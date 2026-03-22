@@ -1,6 +1,14 @@
 [package]
 name = "bingo-cli"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+
+[[bin]]
+name = "bingo-cli"
+path = "src/main.rs"
 
 [dependencies]
+bingo-core = { path = "../bingo-core" }
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }
+anyhow = "1"

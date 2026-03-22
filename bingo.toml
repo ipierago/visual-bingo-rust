@@ -1,0 +1,104 @@
+[settings]
+seed = "test-1234"
+card_count = 3
+output = "bingo.pdf"
+
+[[images]]
+path = "assets/animals/cat.jpg"
+label = "cat"
+
+[[images]]
+path = "assets/animals/dog.jpg"
+label = "dog"
+
+[[images]]
+path = "assets/animals/fish.jpg"
+label = "fish"
+
+[[images]]
+path = "assets/food/apple.jpg"
+label = "apple"
+
+[[images]]
+path = "assets/food/banana.jpg"
+label = "banana"
+
+[[images]]
+path = "assets/food/carrot.jpg"
+label = "carrot"
+
+[[images]]
+path = "assets/food/pizza.jpg"
+label = "pizza"
+
+[[images]]
+path = "assets/food/cake.jpg"
+label = "cake"
+
+[[images]]
+path = "assets/food/bread.jpg"
+label = "bread"
+
+[[images]]
+path = "assets/food/cheese.jpg"
+label = "cheese"
+
+[[images]]
+path = "assets/food/egg.jpg"
+label = "egg"
+
+[[images]]
+path = "assets/food/milk.jpg"
+label = "milk"
+
+[[images]]
+path = "assets/food/rice.jpg"
+label = "rice"
+
+[[images]]
+path = "assets/food/soup.jpg"
+label = "soup"
+
+[[images]]
+path = "assets/food/steak.jpg"
+label = "steak"
+
+[[images]]
+path = "assets/food/sushi.jpg"
+label = "sushi"
+
+[[images]]
+path = "assets/food/taco.jpg"
+label = "taco"
+
+[[images]]
+path = "assets/food/pasta.jpg"
+label = "pasta"
+
+[[images]]
+path = "assets/food/salad.jpg"
+label = "salad"
+
+[[images]]
+path = "assets/food/burger.jpg"
+label = "burger"
+
+[[images]]
+path = "assets/food/fries.jpg"
+label = "fries"
+
+[[images]]
+path = "assets/food/icecream.jpg"
+label = "ice cream"
+
+[[images]]
+path = "assets/food/cookie.jpg"
+label = "cookie"
+
+[[images]]
+path = "assets/food/donut.jpg"
+label = "donut"
+
+[[images]]
+path = "assets/food/waffle.jpg"
+label = "waffle"
