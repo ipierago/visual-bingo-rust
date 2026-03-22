@@ -12,19 +12,23 @@ fn main() -> Result<()> {
     let config_str = fs::read_to_string(config_path)
         .with_context(|| format!("Could not read config file: {}", config_path))?;
 
-    let config: Config = toml::from_str(&config_str)
-        .with_context(|| "Failed to parse config file")?;
+    let config: Config =
+        toml::from_str(&config_str).with_context(|| "Failed to parse config file")?;
 
     println!("Seed:       {}", config.settings.seed);
     println!("Cards:      {}", config.settings.card_count);
     println!("Images:     {}", config.images.len());
     println!("Output:     {}", config.settings.output);
 
-    let images: Vec<ImageItem> = config.images.iter().map(|e| ImageItem {
-        id: e.label.clone(),
-        label: e.label.clone(),
-        url: e.path.clone(),
-    }).collect();
+    let images: Vec<ImageItem> = config
+        .images
+        .iter()
+        .map(|e| ImageItem {
+            id: e.label.clone(),
+            label: e.label.clone(),
+            url: e.path.clone(),
+        })
+        .collect();
 
     let req = GenerateRequest {
         images,
@@ -40,7 +44,9 @@ fn main() -> Result<()> {
     println!("\nCard 1 preview:");
     for (i, cell) in resp.cards[0].cells.iter().enumerate() {
         print!("  {:>2}. {:<20}", i + 1, cell.label);
-        if (i + 1) % 5 == 0 { println!() }
+        if (i + 1) % 5 == 0 {
+            println!()
+        }
     }
 
     println!("\nDone. (PDF output coming soon)");

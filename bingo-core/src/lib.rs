@@ -1,7 +1,7 @@
-mod shuffle;
 mod generate;
+mod shuffle;
 
-pub use generate::{generate_cards, generate_call_list, generate};
+pub use generate::{generate, generate_call_list, generate_cards};
 
 use serde::{Deserialize, Serialize};
 
@@ -39,11 +39,13 @@ mod tests {
     use super::*;
 
     fn make_images(n: usize) -> Vec<ImageItem> {
-        (0..n).map(|i| ImageItem {
-            id: format!("img-{}", i),
-            label: format!("image {}", i),
-            url: format!("http://example.com/{}.jpg", i),
-        }).collect()
+        (0..n)
+            .map(|i| ImageItem {
+                id: format!("img-{}", i),
+                label: format!("image {}", i),
+                url: format!("http://example.com/{}.jpg", i),
+            })
+            .collect()
     }
 
     #[test]
@@ -108,8 +110,7 @@ mod tests {
             card_count: 1,
         };
         let resp = generate(&req);
-        let ids: std::collections::HashSet<_> =
-            resp.cards[0].cells.iter().map(|c| &c.id).collect();
+        let ids: std::collections::HashSet<_> = resp.cards[0].cells.iter().map(|c| &c.id).collect();
         assert_eq!(ids.len(), 25);
     }
 }

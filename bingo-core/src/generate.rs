@@ -1,5 +1,5 @@
-use crate::{BingoCard, GenerateRequest, GenerateResponse, ImageItem};
 use crate::shuffle::shuffle;
+use crate::{BingoCard, GenerateRequest, GenerateResponse, ImageItem};
 
 const CELLS_PER_CARD: usize = 25;
 
