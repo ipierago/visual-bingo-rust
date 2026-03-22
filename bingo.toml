@@ -4,101 +4,109 @@ card_count = 3
 output = "bingo.pdf"
 
 [[images]]
-path = "assets/animals/cat.jpg"
+path = "web/src/assets/images/vocabulary/actions/chop.png"
+label = "chop"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/clap.png"
+label = "clap"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/dance.png"
+label = "dance"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/hop.png"
+label = "hop"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/jump.png"
+label = "jump"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/laugh.png"
+label = "laugh"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/mix.png"
+label = "mix"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/pour.png"
+label = "pour"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/sit.png"
+label = "sit"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/stomp.png"
+label = "stomp"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/actions/walk.png"
+label = "walk"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/animals/bird.png"
+label = "bird"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/animals/camel.png"
+label = "camel"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/animals/car.png"
+label = "car"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/animals/cat.png"
 label = "cat"
 
 [[images]]
-path = "assets/animals/dog.jpg"
+path = "web/src/assets/images/vocabulary/animals/cheetah.png"
+label = "cheetah"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/animals/chicken.png"
+label = "chicken"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/animals/cow.png"
+label = "cow"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/animals/crocodile.png"
+label = "crocodile"
+
+[[images]]
+path = "web/src/assets/images/vocabulary/animals/dog.png"
 label = "dog"
 
 [[images]]
-path = "assets/animals/fish.jpg"
-label = "fish"
+path = "web/src/assets/images/vocabulary/animals/duck.png"
+label = "duck"
 
 [[images]]
-path = "assets/food/apple.jpg"
-label = "apple"
+path = "web/src/assets/images/vocabulary/animals/eagle.png"
+label = "eagle"
 
 [[images]]
-path = "assets/food/banana.jpg"
-label = "banana"
+path = "web/src/assets/images/vocabulary/animals/elephant.png"
+label = "elephant"
 
 [[images]]
-path = "assets/food/carrot.jpg"
-label = "carrot"
+path = "web/src/assets/images/vocabulary/animals/flamingo.png"
+label = "flamingo"
 
 [[images]]
-path = "assets/food/pizza.jpg"
-label = "pizza"
+path = "web/src/assets/images/vocabulary/animals/giraffe.png"
+label = "giraffe"
 
 [[images]]
-path = "assets/food/cake.jpg"
-label = "cake"
+path = "web/src/assets/images/vocabulary/animals/gorilla.png"
+label = "gorilla"
 
 [[images]]
-path = "assets/food/bread.jpg"
-label = "bread"
-
-[[images]]
-path = "assets/food/cheese.jpg"
-label = "cheese"
-
-[[images]]
-path = "assets/food/egg.jpg"
-label = "egg"
-
-[[images]]
-path = "assets/food/milk.jpg"
-label = "milk"
-
-[[images]]
-path = "assets/food/rice.jpg"
-label = "rice"
-
-[[images]]
-path = "assets/food/soup.jpg"
-label = "soup"
-
-[[images]]
-path = "assets/food/steak.jpg"
-label = "steak"
-
-[[images]]
-path = "assets/food/sushi.jpg"
-label = "sushi"
-
-[[images]]
-path = "assets/food/taco.jpg"
-label = "taco"
-
-[[images]]
-path = "assets/food/pasta.jpg"
-label = "pasta"
-
-[[images]]
-path = "assets/food/salad.jpg"
-label = "salad"
-
-[[images]]
-path = "assets/food/burger.jpg"
-label = "burger"
-
-[[images]]
-path = "assets/food/fries.jpg"
-label = "fries"
-
-[[images]]
-path = "assets/food/icecream.jpg"
-label = "ice cream"
-
-[[images]]
-path = "assets/food/cookie.jpg"
-label = "cookie"
-
-[[images]]
-path = "assets/food/donut.jpg"
-label = "donut"
-
-[[images]]
-path = "assets/food/waffle.jpg"
-label = "waffle"
+path = "web/src/assets/images/vocabulary/animals/hippo.png"
+label = "hippo"
