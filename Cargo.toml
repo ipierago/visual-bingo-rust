@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "bingo-core",
+  "bingo-cli",
+  "bingo-wasm",
+]
+resolver = "2"
