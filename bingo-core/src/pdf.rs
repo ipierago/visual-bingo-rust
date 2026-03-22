@@ -10,7 +10,7 @@ const A4_H: f32 = 842.0;
 const MARGIN: f32 = 20.0;
 const GRID: usize = 5;
 const CALL_LIST_COLS: usize = 3;
-const CALL_LIST_ROWS: usize = 8;
+const CALL_LIST_ROWS: usize = 50; // ~(842 - 40) / 15.4 ≈ 52, use 50 to be safe
 const CALL_LIST_PER_PAGE: usize = CALL_LIST_COLS * CALL_LIST_ROWS;
 
 pub struct ImageData {
@@ -122,7 +122,6 @@ pub fn generate_pdf(options: &PdfOptions, image_data: &[ImageData]) -> Vec<u8> {
     }
 
     // Call list pages
-    let per_page = 3 * 8;
     for (pi, chunk) in options.call_list.chunks(CALL_LIST_PER_PAGE).enumerate() {
         let page_id = Ref::new(first_page_ref + card_count as i32 + pi as i32);
         let content_id = Ref::new(first_content_ref + card_count as i32 + pi as i32);
@@ -242,8 +241,10 @@ fn write_call_list_page(
     items: &[ImageItem],
     page_index: usize,
 ) {
+    let font_size = 11.0f32;
+    let row_h = font_size * 1.4; // single spaced with a little breathing room
     let col_w = (A4_W - MARGIN * 2.0) / CALL_LIST_COLS as f32;
-    let row_h = (A4_H - MARGIN * 2.0) / CALL_LIST_ROWS as f32;
+
     let font_size = 11.0f32;
 
     let mut page = pdf.page(page_id);
@@ -261,10 +262,11 @@ fn write_call_list_page(
     content.set_fill_rgb(0.1, 0.1, 0.1);
 
     for (i, item) in items.iter().enumerate() {
-        let col = i % CALL_LIST_COLS;
-        let row = i / CALL_LIST_COLS;
+        let items_per_col = CALL_LIST_ROWS;
+        let col = i / items_per_col;
+        let row = i % items_per_col;
         let x = MARGIN + col as f32 * col_w;
-        let y = A4_H - MARGIN - (row + 1) as f32 * row_h + row_h / 2.0;
+        let y = A4_H - MARGIN - (row + 1) as f32 * row_h;
 
         let number = page_index * CALL_LIST_PER_PAGE + i + 1;
         let label = format!("{}. {}", number, item.label);
