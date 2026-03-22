@@ -1,7 +1,9 @@
 mod generate;
+pub mod pdf;
 mod shuffle;
 
 pub use generate::{generate, generate_call_list, generate_cards};
+pub use pdf::{generate_pdf, ImageData, PdfOptions};
 
 use serde::{Deserialize, Serialize};
 

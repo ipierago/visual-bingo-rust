@@ -1,7 +1,7 @@
 mod config;
 
 use anyhow::{Context, Result};
-use bingo_core::{generate, GenerateRequest, ImageItem};
+use bingo_core::{generate, generate_pdf, GenerateRequest, ImageData, ImageItem, PdfOptions};
 use config::Config;
 use std::{env, fs};
 
@@ -15,10 +15,26 @@ fn main() -> Result<()> {
     let config: Config =
         toml::from_str(&config_str).with_context(|| "Failed to parse config file")?;
 
-    println!("Seed:       {}", config.settings.seed);
-    println!("Cards:      {}", config.settings.card_count);
-    println!("Images:     {}", config.images.len());
-    println!("Output:     {}", config.settings.output);
+    println!("Seed:    {}", config.settings.seed);
+    println!("Cards:   {}", config.settings.card_count);
+    println!("Images:  {}", config.images.len());
+    println!("Output:  {}", config.settings.output);
+
+    // Load image bytes from disk
+    let image_data: Vec<ImageData> = config
+        .images
+        .iter()
+        .map(|e| {
+            let bytes = fs::read(&e.path)
+                .with_context(|| format!("Could not read image: {}", e.path))
+                .unwrap();
+            ImageData {
+                id: e.label.clone(),
+                bytes,
+                is_png: e.path.to_lowercase().ends_with(".png"),
+            }
+        })
+        .collect();
 
     let images: Vec<ImageItem> = config
         .images
@@ -38,17 +54,19 @@ fn main() -> Result<()> {
 
     let resp = generate(&req);
 
-    println!("\nGenerated {} cards", resp.cards.len());
-    println!("Call list has {} images", resp.call_list.len());
+    println!("\nGenerating PDF...");
 
-    println!("\nCard 1 preview:");
-    for (i, cell) in resp.cards[0].cells.iter().enumerate() {
-        print!("  {:>2}. {:<20}", i + 1, cell.label);
-        if (i + 1) % 5 == 0 {
-            println!()
-        }
-    }
+    let pdf_bytes = generate_pdf(
+        &PdfOptions {
+            cards: resp.cards,
+            call_list: resp.call_list,
+        },
+        &image_data,
+    );
 
-    println!("\nDone. (PDF output coming soon)");
+    fs::write(&config.settings.output, pdf_bytes)
+        .with_context(|| format!("Could not write output: {}", config.settings.output))?;
+
+    println!("Written to {}", config.settings.output);
     Ok(())
 }
