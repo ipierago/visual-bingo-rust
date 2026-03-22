@@ -1,5 +1,5 @@
 use image::GenericImageView;
-use pdf_writer::{Content, Finish, Name, Pdf, Rect, Ref};
+use pdf_writer::{Content, Finish, Name, Pdf, Rect, Ref, Str};
 use std::collections::HashMap;
 
 use crate::{BingoCard, ImageItem};
@@ -9,6 +9,9 @@ const A4_W: f32 = 595.0;
 const A4_H: f32 = 842.0;
 const MARGIN: f32 = 20.0;
 const GRID: usize = 5;
+const CALL_LIST_COLS: usize = 3;
+const CALL_LIST_ROWS: usize = 8;
+const CALL_LIST_PER_PAGE: usize = CALL_LIST_COLS * CALL_LIST_ROWS;
 
 pub struct ImageData {
     pub id: String,
@@ -32,7 +35,21 @@ struct DecodedImage {
 fn decode_image(data: &ImageData) -> Option<DecodedImage> {
     let img = image::load_from_memory(&data.bytes).ok()?;
     let (width, height) = img.dimensions();
-    let samples = img.to_rgb8().into_raw();
+
+    // Flatten alpha against white background
+    let img_rgba = img.to_rgba8();
+    let mut samples = Vec::with_capacity((width * height * 3) as usize);
+
+    for pixel in img_rgba.pixels() {
+        let alpha = pixel[3] as f32 / 255.0;
+        let r = (pixel[0] as f32 * alpha + 255.0 * (1.0 - alpha)) as u8;
+        let g = (pixel[1] as f32 * alpha + 255.0 * (1.0 - alpha)) as u8;
+        let b = (pixel[2] as f32 * alpha + 255.0 * (1.0 - alpha)) as u8;
+        samples.push(r);
+        samples.push(g);
+        samples.push(b);
+    }
+
     Some(DecodedImage {
         width,
         height,
@@ -43,13 +60,8 @@ fn decode_image(data: &ImageData) -> Option<DecodedImage> {
 pub fn generate_pdf(options: &PdfOptions, image_data: &[ImageData]) -> Vec<u8> {
     let mut pdf = Pdf::new();
 
-    // Allocate reference IDs
-    // IDs: 1 = catalog, 2 = page tree, 3..N = pages, then images
     let catalog_id = Ref::new(1);
     let page_tree_id = Ref::new(2);
-
-    let page_count = options.cards.len() + call_list_page_count(&options.call_list);
-    let first_page_id = 3i32;
 
     // Decode and index all images
     let image_map: HashMap<&str, &ImageData> =
@@ -62,51 +74,69 @@ pub fn generate_pdf(options: &PdfOptions, image_data: &[ImageData]) -> Vec<u8> {
         }
     }
 
-    // Assign a Ref to each unique image
+    let card_count = options.cards.len();
+    let call_list_pages = call_list_page_count(&options.call_list);
+    let total_pages = card_count + call_list_pages;
+
+    // Ref layout:
+    // 1          = catalog
+    // 2          = page tree
+    // 3..P+2     = pages (cards then call list)
+    // P+3..P+3+C = content streams (one per page)
+    // P+3+C..    = image xobjects
+    let first_page_ref = 3i32;
+    let first_content_ref = first_page_ref + total_pages as i32;
+    let first_image_ref = first_content_ref + total_pages as i32;
+
+    // After first_image_ref calculation
+    let font_ref = Ref::new(first_image_ref + decoded.len() as i32);
+
+    // Assign a stable ref to each unique image
     let mut image_refs: HashMap<&str, Ref> = HashMap::new();
-    let mut next_id = first_page_id + page_count as i32;
-    for id in decoded.keys() {
-        image_refs.insert(id, Ref::new(next_id));
-        next_id += 1;
+    for (i, id) in decoded.keys().enumerate() {
+        image_refs.insert(id, Ref::new(first_image_ref + i as i32));
     }
 
-    // Write catalog
+    // Catalog + page tree
     pdf.catalog(catalog_id).pages(page_tree_id);
-
-    // Write page tree
-    let page_ids: Vec<Ref> = (0..page_count)
-        .map(|i| Ref::new(first_page_id + i as i32))
+    let page_ids: Vec<Ref> = (0..total_pages)
+        .map(|i| Ref::new(first_page_ref + i as i32))
         .collect();
     pdf.pages(page_tree_id)
         .kids(page_ids.iter().copied())
-        .count(page_count as i32);
+        .count(total_pages as i32);
 
-    // Write card pages
+    // Card pages
     for (i, card) in options.cards.iter().enumerate() {
-        let page_id = Ref::new(first_page_id + i as i32);
-        let content_id = next_id;
-        next_id += 1;
+        let page_id = Ref::new(first_page_ref + i as i32);
+        let content_id = Ref::new(first_content_ref + i as i32);
         write_card_page(
             &mut pdf,
             page_id,
             page_tree_id,
+            content_id,
             card,
             &image_refs,
             &decoded,
-            content_id,
         );
     }
-    // Write call list pages
-    let call_pages = options.cards.len();
-    let cols = 3usize;
-    let rows = 8usize;
-    let per_page = cols * rows;
-    for (pi, chunk) in options.call_list.chunks(per_page).enumerate() {
-        let page_id = Ref::new(first_page_id + call_pages as i32 + pi as i32);
-        write_call_list_page(&mut pdf, page_id, page_tree_id, chunk, pi, per_page);
-    }
 
-    // Write image XObjects
+    // Call list pages
+    let per_page = 3 * 8;
+    for (pi, chunk) in options.call_list.chunks(CALL_LIST_PER_PAGE).enumerate() {
+        let page_id = Ref::new(first_page_ref + card_count as i32 + pi as i32);
+        let content_id = Ref::new(first_content_ref + card_count as i32 + pi as i32);
+        write_call_list_page(
+            &mut pdf,
+            page_id,
+            page_tree_id,
+            content_id,
+            font_ref,
+            chunk,
+            pi,
+        );
+    }
+    // Image XObjects
     for (id, dec) in &decoded {
         let img_ref = image_refs[id];
         let mut image = pdf.image_xobject(img_ref, &dec.samples);
@@ -117,6 +147,9 @@ pub fn generate_pdf(options: &PdfOptions, image_data: &[ImageData]) -> Vec<u8> {
         image.finish();
     }
 
+    // After writing image XObjects
+    pdf.type1_font(font_ref).base_font(Name(b"Helvetica"));
+
     pdf.finish()
 }
 
@@ -124,13 +157,11 @@ fn write_card_page(
     pdf: &mut Pdf,
     page_id: Ref,
     page_tree_id: Ref,
+    content_id: Ref,
     card: &BingoCard,
     image_refs: &HashMap<&str, Ref>,
     decoded: &HashMap<&str, DecodedImage>,
-    content_id: i32,
 ) {
-    let content_ref = Ref::new(content_id);
-
     let cell_w = (A4_W - MARGIN * 2.0) / GRID as f32;
     let cell_h = (A4_H - MARGIN * 2.0) / GRID as f32;
     let pad = 4.0;
@@ -161,7 +192,7 @@ fn write_card_page(
     }
     x_objects.finish();
     resources.finish();
-    page.contents(content_ref);
+    page.contents(content_id);
     page.finish();
 
     // Content stream
@@ -199,59 +230,59 @@ fn write_card_page(
         }
     }
 
-    pdf.stream(content_ref, &content.finish());
+    pdf.stream(content_id, &content.finish());
 }
 
 fn write_call_list_page(
     pdf: &mut Pdf,
     page_id: Ref,
     page_tree_id: Ref,
+    content_id: Ref,
+    font_ref: Ref,
     items: &[ImageItem],
     page_index: usize,
-    per_page: usize,
 ) {
-    let content_ref = Ref::new(page_id.get() + 10000); // offset to avoid collision
-    let cols = 3usize;
-    let rows = 8usize;
-    let col_w = (A4_W - MARGIN * 2.0) / cols as f32;
-    let row_h = (A4_H - MARGIN * 2.0) / rows as f32;
+    let col_w = (A4_W - MARGIN * 2.0) / CALL_LIST_COLS as f32;
+    let row_h = (A4_H - MARGIN * 2.0) / CALL_LIST_ROWS as f32;
+    let font_size = 11.0f32;
 
     let mut page = pdf.page(page_id);
     page.parent(page_tree_id)
         .media_box(Rect::new(0.0, 0.0, A4_W, A4_H));
-    page.contents(content_ref);
+
+    let mut resources = page.resources();
+    resources.fonts().pair(Name(b"F1"), font_ref);
+    resources.finish();
+
+    page.contents(content_id);
     page.finish();
 
     let mut content = Content::new();
-
-    content
-        .set_fill_rgb(0.1, 0.1, 0.1)
-        .begin_text()
-        .set_font(Name(b"F1"), 11.0);
+    content.set_fill_rgb(0.1, 0.1, 0.1);
 
     for (i, item) in items.iter().enumerate() {
-        let col = i % cols;
-        let row = i / cols;
+        let col = i % CALL_LIST_COLS;
+        let row = i / CALL_LIST_COLS;
         let x = MARGIN + col as f32 * col_w;
         let y = A4_H - MARGIN - (row + 1) as f32 * row_h + row_h / 2.0;
 
-        let number = page_index * per_page + i + 1;
+        let number = page_index * CALL_LIST_PER_PAGE + i + 1;
         let label = format!("{}. {}", number, item.label);
 
         content
-            .next_line(x, y)
-            .show(pdf_writer::Str(label.as_bytes()));
+            .begin_text()
+            .set_font(Name(b"F1"), font_size)
+            .set_text_matrix([1.0, 0.0, 0.0, 1.0, x, y])
+            .show(Str(label.as_bytes()))
+            .end_text();
     }
 
-    content.end_text();
-    pdf.stream(content_ref, &content.finish());
+    pdf.stream(content_id, &content.finish());
 }
 
 fn call_list_page_count(call_list: &[ImageItem]) -> usize {
-    let per_page = 3 * 8;
-    call_list.len().div_ceil(per_page)
+    call_list.len().div_ceil(CALL_LIST_PER_PAGE)
 }
-
 // Convert an image id to a safe PDF resource name like "Im_cat"
 fn image_name(id: &str) -> String {
     let safe = id.replace(['/', ' ', '-'], "_");
