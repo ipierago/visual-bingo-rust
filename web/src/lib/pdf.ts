@@ -62,7 +62,9 @@ export async function generatePdf(options: GenerateOptions): Promise<Uint8Array>
   await yieldToMain()
 
   // Generate PDF in Rust
+  const t0 = performance.now()
   const pdfBytes = generate_pdf_wasm(JSON.stringify(request), JSON.stringify(imageDataList))
+  console.log(`[timing] PDF render (Rust): ${Math.round(performance.now() - t0)}ms`)
 
   onProgress?.({ current: cards.length, total: cards.length, phase: 'calllist' })
 
