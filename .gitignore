@@ -8,3 +8,5 @@ web/dist
 # Editor
 .DS_Store
 .vscode
+
+web/src/wasm
