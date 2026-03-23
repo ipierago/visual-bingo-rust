@@ -31,23 +31,19 @@ export async function generatePdf(options: GenerateOptions): Promise<Uint8Array>
   const uniqueItems = [...new Map(allItems.map((i) => [i.id, i])).values()]
 
   // Fetch all image bytes
-  const imageDataList = []
-  for (let i = 0; i < uniqueItems.length; i++) {
-    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
-    const item = uniqueItems[i]
-    const bytes = await fetchImageBytes(item.url)
-    imageDataList.push({
-      id: item.id,
-      bytes: Array.from(bytes), // JSON serializable
-      is_png: item.url.toLowerCase().endsWith('.png'),
-    })
-    onProgress?.({
-      current: i + 1,
-      total: uniqueItems.length,
-      phase: 'loading',
-    })
-    await yieldToMain()
-  }
+  // Fetch all images in parallel
+  const imageDataList = await Promise.all(
+    uniqueItems.map(async (item) => {
+      const bytes = await fetchImageBytes(item.url)
+      return {
+        id: item.id,
+        bytes: Array.from(bytes),
+        is_png: item.url.toLowerCase().endsWith('.png'),
+      }
+    }),
+  )
+  onProgress?.({ current: uniqueItems.length, total: uniqueItems.length, phase: 'loading' })
+  await yieldToMain()
 
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
 
